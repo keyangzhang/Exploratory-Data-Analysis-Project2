@@ -1,20 +1,16 @@
-source("downloadArchive.R")
+url <- 'http://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip'
 
-NEI <- readRDS("summarySCC_PM25.rds")
-SCC <- readRDS("Source_Classification_Code.rds")
+if (!file.exists('data/exdata-data-NEI_data.zip')) {
+  download.file(url, 'data/exdata-data-NEI_data.zip')
+  unzip('data/exdata-data-NEI_data.zip', exdir='./data')
+}
 
-baltimoreNEI <- NEI[NEI$fips=="24510",]
+pmEmissionsData <- readRDS('data/summarySCC_PM25.rds')
+sourceClassificationCode <- readRDS('data/Source_Classification_Code.rds')
 
-aggTotalsBaltimore <- aggregate(Emissions ~ year, baltimoreNEI,sum)
+data <- pmEmissionsData[pmEmissionsData$fips == "24510",]
+data <- aggregate(Emissions ~ year, data=data, sum)
 
-png("plot2.png",width=480,height=480,units="px",bg="transparent")
-
-barplot(
-  aggTotalsBaltimore$Emissions,
-  names.arg=aggTotalsBaltimore$year,
-  xlab="Year",
-  ylab="PM2.5 Emissions (Tons)",
-  main="Total PM2.5 Emissions From all Baltimore City Sources"
-)
-
+png('plot2.png', width = 480, height = 480)                                                                              
+plot(data$year, data$Emissions, type="b", main="Total Emissions Per Year in Baltimore", xlab="Year", ylab="Total Emissions")
 dev.off()
