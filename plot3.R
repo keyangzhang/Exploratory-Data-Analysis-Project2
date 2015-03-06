@@ -1,23 +1,17 @@
-source("downloadArchive.R")
-
-NEI <- readRDS("summarySCC_PM25.rds")
-SCC <- readRDS("Source_Classification_Code.rds")
-
-baltimoreNEI <- NEI[NEI$fips=="24510",]
-
-aggTotalsBaltimore <- aggregate(Emissions ~ year, baltimoreNEI,sum)
-
-png("plot3.png",width=480,height=480,units="px",bg="transparent")
-
 library(ggplot2)
 
-ggp <- ggplot(baltimoreNEI,aes(factor(year),Emissions,fill=type)) +
-  geom_bar(stat="identity") +
-  theme_bw() + guides(fill=FALSE)+
-  facet_grid(.~type,scales = "free",space="free") + 
-  labs(x="year", y=expression("Total PM"[2.5]*" Emission (Tons)")) + 
-  labs(title=expression("PM"[2.5]*" Emissions, Baltimore City 1999-2008 by Source Type"))
+url <- 'http://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip'
 
-print(ggp)
+if (!file.exists('data/exdata-data-NEI_data.zip')) {
+  download.file(url, 'data/exdata-data-NEI_data.zip')
+  unzip('data/exdata-data-NEI_data.zip', exdir='./data')
+}
 
-dev.off()
+pmEmissionsData <- readRDS('data/summarySCC_PM25.rds')
+sourceClassificationCode <- readRDS('data/Source_Classification_Code.rds')
+
+data <- pmEmissionsData[pmEmissionsData$fips == "24510",]
+data <- aggregate(Emissions ~ year + type, data=data, sum)
+
+plot <- qplot(year, Emissions, data=data, color=type, geom="path", main="Emissions By Type In Baltimor", xlab="Year", ylab="Emissions")
+ggsave(plot, file="plot3.png", width=6, height=5)
